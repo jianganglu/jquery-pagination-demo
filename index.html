@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>jquery.pagination demo</title>
+  <link href="vendor/jquery.pagination/pagination.css" rel="stylesheet">
+</head>
+<body>
+  <table id="stu-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>学号</th>
+        <th>姓名</th>
+        <th>联系方式</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <div id="pagination" class="pagination"></div>
+<script src="http://cdn.bootcss.com/jquery/3.1.0/jquery.js"></script>
+<script src="/vendor/jquery.pagination/jquery.pagination.js"></script>
+<script src="/vendor/underscore.js"></script>
+<script>
+  ;(function() {
+    'use strict';
+
+    $(function() {
+
+      var StuTableTmpl = null;
+
+      var home = {
+
+        StuTableTmpl: null,
+
+        $pagination: $('#pagination'),
+
+        init: function() {
+          this.getStuTmpl();
+          this.setupEvent();
+        },
+
+        setupEvent: function() {
+          var self = this;
+        },
+
+        pageSelectCallback: function(page_index, jq) {
+          home.getStuList(page_index);
+        },
+
+        getStuTmpl: function() {
+          var self = this;
+
+          $.ajax({
+            type: 'GET',
+            url: '/tmpl/stu-table.ejs'
+          }).done(function(resp) {
+            console.log(resp);
+            StuTableTmpl = _.template(resp);
+            self.getStuList(0);
+          });
+        },
+
+        getStuList: function(pageIndex, jq) {
+          var self = this;
+
+          $.ajax({
+            type: 'GET',
+            url: '/data/stu-table'+ pageIndex +'.json'
+          }).done(function(resp) {
+
+            console.log(resp);
+
+            if(resp.code === 'ACK') {
+              $('#stu-table').find('tbody').empty().append(StuTableTmpl({
+                items: resp.data
+              }));
+
+              if(!pageIndex) {
+                $('#pagination').pagination(6, {
+                  num_edge_entries: 0,
+                  num_display_entries: 4,
+                  callback: self.pageSelectCallback,
+                  items_per_page:3,
+                  prev_text: '前一页',
+                  next_text: '后一页'
+                });
+              }
+            }
+          });
+        }
+      };
+
+      home.init();
+
+    });
+  })();
+</script>
+</body>
+</html>
